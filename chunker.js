@@ -78,6 +78,19 @@ class Chunker{
 				this.chunks[this.y].forEach(chunk=>chunk.move(1,0));
 				this.render();
 				break;
+			case 'a':
+				this.chunks[this.y].forEach(chunk=>chunk.move(-1,0));
+				this.render();
+				break;
+			case 'w':
+				this.chunks.forEach(row=>row[this.x].move(0,-1));
+				this.render();
+				break;
+			case 's':
+				this.chunks.forEach(row=>row[this.x].move(0,1));
+				this.render();
+				break;
+
 
 		}
 	}
