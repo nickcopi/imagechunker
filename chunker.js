@@ -4,6 +4,9 @@ class Chunker{
 		this.height = 2;
 		this.img = new Image();
 		this.img.src = src;
+		this.x = 0;
+		this.y = 0;
+		window.addEventListener('keydown',this.keydown.bind(this));
 		this.img.addEventListener('load',()=>{
 			this.canvas = canvas;
 			this.canvas.width = this.img.width;
@@ -19,13 +22,13 @@ class Chunker{
 		const colors = this.ctx.getImageData(0,0,this.img.width,this.img.height);
 		console.log(colors);
 		for(let x = 0; x < colors.width; x += this.width){
+			this.chunks.push([]);
 			for(let y = 0; y < colors.height; y += this.height){
-				const chunk = new Chunk(y,x);
+				const chunk = new Chunk(y,x,colors.width,colors.height);
 				for(let i = 0; i < this.width; i++){
 					for(let j = 0; j < this.height; j++){
 						const index = (4 * (x+i) * colors.width) + 4 * (y+j);
 						const pixelData = [...colors.data.slice(index,index+4)];
-						//console.log(pixelData,x+i,y+j);
 						const opacity = pixelData.pop()/255;
 						const color = pixelData.reduce((acc,curr,index)=>{
 							if(index === 1) return '#' + acc.toString(16).padStart(2,'0') + curr.toString(16).padStart(2,'0');
@@ -34,7 +37,7 @@ class Chunker{
 						chunk.addPixel(new Pixel((y+j),(x+i),color,opacity));
 					}
 				}
-				this.chunks.push(chunk);
+				this.chunks[Math.floor(x/this.width)][Math.floor(y/this.height)] = chunk;
 			}
 		}
 		console.log(this.chunks);
@@ -44,9 +47,39 @@ class Chunker{
 	}
 	render(){
 		this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-		this.chunks.forEach(chunk=>{
+		this.chunks.forEach(row=>row.forEach(chunk=>{
 			chunk.render(this.ctx);
-		});
+		}));
+		this.ctx.globalAlpha = 1;
+		this.ctx.strokeStyle = 'black';
+		this.ctx.lineWidth = '1px';
+		this.ctx.strokeRect(this.x*this.width,0,this.width,this.img.height);
+		this.ctx.strokeRect(0,this.y*this.height,this.img.width,this.height);
+	}
+	keydown(e){
+		switch(e.key){
+			case 'ArrowRight':
+				this.x++;
+				this.render();
+				break;
+			case 'ArrowLeft':
+				this.x--;
+				this.render();
+				break;
+			case 'ArrowDown':
+				this.y++;
+				this.render();
+				break;
+			case 'ArrowUp':
+				this.y--;
+				this.render();
+				break;
+			case 'd':
+				this.chunks[this.y].forEach(chunk=>chunk.move(1,0));
+				this.render();
+				break;
+
+		}
 	}
 
 }
